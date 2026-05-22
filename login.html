@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Data | Login</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',sans-serif; background:#0d1b2a; display:flex;
+         align-items:center; justify-content:center; min-height:100vh; }
+  .card { background:#1a2940; border-radius:12px; padding:48px 40px;
+          width:380px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .logo { text-align:center; margin-bottom:32px; }
+  .logo h1 { color:#e8f4fd; font-size:22px; font-weight:700; letter-spacing:1px; }
+  .logo p  { color:#7a9bb5; font-size:13px; margin-top:4px; }
+  label { display:block; color:#a0bdd0; font-size:13px; margin-bottom:6px; }
+  input { width:100%; padding:12px 14px; border-radius:8px; border:1px solid #2e4a63;
+          background:#0d1b2a; color:#e8f4fd; font-size:14px; margin-bottom:18px; }
+  input:focus { outline:none; border-color:#3a82c4; }
+  button { width:100%; padding:13px; background:#1e6db5; color:#fff; border:none;
+           border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; }
+  button:hover { background:#2980d4; }
+  .error { background:#3d1a1a; color:#f87171; border-radius:6px;
+           padding:10px 14px; font-size:13px; margin-bottom:16px; }
+  .footer { text-align:center; color:#3a5570; font-size:12px; margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>ALPHA DATA</h1>
+    <p>Executive Dashboard 2026</p>
+  </div>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="POST">
+    <label>Username</label>
+    <input type="text" name="username" autocomplete="username" required>
+    <label>Password</label>
+    <input type="password" name="password" autocomplete="current-password" required>
+    <button type="submit">Sign In</button>
+  </form>
+  <div class="footer">Alpha Data LLC &copy; 2026</div>
+</div>
+</body>
+</html>

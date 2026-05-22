@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Data | Executive Dashboard 2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0d1b2a;color:#e8f4fd;min-height:100vh;display:flex;flex-direction:column}
+/* ── Header ── */
+header{background:#1a2940;padding:12px 20px;display:flex;align-items:center;
+       justify-content:space-between;border-bottom:2px solid #1e6db5;position:sticky;top:0;z-index:200}
+header h1{font-size:16px;font-weight:700;letter-spacing:.5px}
+.hdr-meta{font-size:11px;color:#7a9bb5;margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.btn-refresh{background:#1e6db5;color:#fff;border:none;padding:7px 14px;
+             border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-refresh:hover{background:#2980d4}
+.btn-logout{color:#7a9bb5;text-decoration:none;font-size:12px}
+.btn-logout:hover{color:#e8f4fd}
+/* ── Layout ── */
+.layout{display:flex;flex:1;overflow:hidden}
+/* ── Sidebar ── */
+.sidebar{width:240px;min-width:240px;background:#111f30;border-right:1px solid #2e4a63;
+         display:flex;flex-direction:column;height:calc(100vh - 50px);position:sticky;top:50px;overflow-y:auto}
+.sidebar-top{flex:1;padding:18px 14px}
+.sidebar-bottom{padding:14px;border-top:1px solid #2e4a63}
+.sbar-title{font-size:10px;font-weight:700;color:#5a7a95;text-transform:uppercase;
+            letter-spacing:.9px;margin-bottom:10px}
+.am-btn{display:block;width:100%;text-align:left;background:none;border:none;color:#a0bdd0;
+        font-size:13px;padding:9px 12px;border-radius:6px;cursor:pointer;
+        transition:.15s;font-family:inherit;margin-bottom:2px}
+.am-btn:hover{background:#1a2940;color:#e8f4fd}
+.am-btn.active{background:#1e6db5;color:#fff;font-weight:600}
+.am-btn .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
+/* ── Upload zone ── */
+.upload-zone{border:2px dashed #2e4a63;border-radius:8px;padding:16px 12px;
+             text-align:center;cursor:pointer;transition:.2s;position:relative}
+.upload-zone:hover,.upload-zone.drag-over{border-color:#1e6db5;background:#0f2035}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:22px;margin-bottom:6px}
+.upload-zone .uz-text{font-size:11px;color:#7a9bb5;line-height:1.4}
+.upload-zone .uz-link{color:#60a5fa;font-weight:600}
+.file-chips{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.file-chip{background:#1a2940;border:1px solid #2e4a63;border-radius:4px;
+           padding:5px 8px;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.file-chip .chip-name{color:#a0bdd0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.file-chip .chip-ok{color:#34d399;font-size:10px}
+.file-chip .chip-warn{color:#f87171;font-size:10px}
+.file-chip .chip-rm{background:none;border:none;color:#5a7a95;cursor:pointer;font-size:14px;padding:0 2px}
+.file-chip .chip-rm:hover{color:#f87171}
+.btn-upload{width:100%;margin-top:10px;background:#1e6db5;color:#fff;border:none;
+            padding:9px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+            transition:.2s;display:none}
+.btn-upload:hover{background:#2980d4}
+.btn-upload:disabled{background:#2e4a63;cursor:not-allowed}
+.upload-status{margin-top:8px;font-size:11px;line-height:1.5}
+.us-ok{color:#34d399}.us-warn{color:#f87171}.us-info{color:#7a9bb5}
+.expected-list{margin-top:10px}
+.exp-item{font-size:10px;color:#5a7a95;padding:3px 0;border-bottom:1px solid #1a2940;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ── Main content ── */
+.content{flex:1;padding:22px 24px;overflow-y:auto;height:calc(100vh - 50px)}
+/* ── Cards ── */
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.card{background:#1a2940;border-radius:10px;padding:16px 18px;border:1px solid #2e4a63}
+.card .lbl{font-size:10px;color:#7a9bb5;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.card .val{font-size:20px;font-weight:700;color:#e8f4fd}
+.card .sub{font-size:11px;color:#7a9bb5;margin-top:3px}
+.card.green .val{color:#34d399}.card.red .val{color:#f87171}.card.blue .val{color:#60a5fa}
+.card.amber .val{color:#fbbf24}
+/* ── Section title ── */
+.sec-title{font-size:12px;font-weight:700;color:#a0bdd0;text-transform:uppercase;
+           letter-spacing:.8px;margin-bottom:12px}
+/* ── AM Table ── */
+.am-table{background:#1a2940;border-radius:10px;overflow:hidden;border:1px solid #2e4a63;margin-bottom:10px}
+.am-table table{width:100%;border-collapse:collapse}
+.am-table th{background:#0f2035;padding:10px 14px;text-align:left;font-size:11px;
+             color:#7a9bb5;text-transform:uppercase;letter-spacing:.6px}
+.am-table td{padding:11px 14px;border-top:1px solid #1e3550;font-size:13px}
+.am-table tr:hover td{background:#1e3550;cursor:pointer}
+.am-table .name-cell{font-weight:600;color:#60a5fa}
+.pct-bar{background:#0d1b2a;border-radius:3px;height:5px;overflow:hidden;margin-top:4px}
+.pct-fill{height:100%;border-radius:3px;background:#1e6db5}
+.pct-fill.green{background:#34d399}.pct-fill.red{background:#f87171}
+/* ── Portlet (accounts detail) ── */
+.portlet{display:none;background:#0f2035;border:1px solid #1e6db5;border-radius:10px;
+         margin-bottom:22px;padding:18px}
+.portlet.active{display:block}
+.portlet h3{font-size:13px;font-weight:700;color:#60a5fa;margin-bottom:12px}
+.portlet table{width:100%;border-collapse:collapse}
+.portlet th{font-size:11px;color:#7a9bb5;text-transform:uppercase;padding:6px 10px;text-align:left}
+.portlet td{padding:7px 10px;border-top:1px solid #1e3550;font-size:13px}
+.portlet .total-row td{font-weight:700;color:#60a5fa;border-top:2px solid #1e6db5}
+/* ── Billing section ── */
+.billing-wrap{background:#1a2940;border-radius:10px;overflow:hidden;border:1px solid #2e4a63;margin-bottom:22px}
+.billing-wrap table{width:100%;border-collapse:collapse;font-size:12px}
+.billing-wrap th{background:#0f2035;padding:9px 12px;text-align:right;font-size:10px;
+                 color:#7a9bb5;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.billing-wrap th:first-child{text-align:left}
+.billing-wrap td{padding:9px 12px;border-top:1px solid #1e3550;text-align:right;white-space:nowrap}
+.billing-wrap td:first-child{text-align:left;font-weight:600;color:#60a5fa}
+.billing-wrap .total-row td{font-weight:700;border-top:2px solid #1e6db5;color:#fbbf24}
+.billing-wrap .zero{color:#2e4a63}
+/* ── Pipeline ── */
+.pipeline{display:grid;gap:14px;margin-bottom:10px}
+.pipeline.cols-5{grid-template-columns:repeat(5,1fr)}
+.pipeline.cols-1{grid-template-columns:1fr;max-width:320px}
+.pipe-card{background:#1a2940;border-radius:10px;padding:16px;border:1px solid #2e4a63}
+.pipe-card .am-name{font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:10px}
+.pipe-row{margin-bottom:8px}
+.pipe-row .pipe-lbl{font-size:11px;color:#7a9bb5;display:flex;justify-content:space-between;
+                    margin-bottom:3px;cursor:pointer;padding:4px 6px;border-radius:4px;transition:.15s}
+.pipe-row .pipe-lbl:hover{background:#1e3550;color:#e8f4fd}
+.pipe-row .pipe-lbl.active-lbl{background:#1e3550;color:#fff;font-weight:700}
+.pipe-bar{background:#0d1b2a;border-radius:3px;height:7px;overflow:hidden}
+.pipe-fill{height:100%;border-radius:3px}
+.p40{background:#f59e0b}.p50{background:#3b82f6}.p80{background:#10b981}
+.pipe-portlet{display:none;background:#0f2035;border:1px solid #2e4a63;border-radius:10px;
+              margin-bottom:22px;padding:18px}
+.pipe-portlet.active{display:block}
+.pipe-portlet h3{font-size:13px;font-weight:700;margin-bottom:12px}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10px;
+       font-weight:700;margin-left:8px;vertical-align:middle}
+.badge-40{background:#92400e;color:#fbbf24}
+.badge-50{background:#1e3a8a;color:#93c5fd}
+.badge-80{background:#064e3b;color:#6ee7b7}
+.pipe-portlet table{width:100%;border-collapse:collapse}
+.pipe-portlet th{font-size:11px;color:#7a9bb5;text-transform:uppercase;padding:6px 10px;text-align:left}
+.pipe-portlet td{padding:7px 10px;border-top:1px solid #1e3550;font-size:13px}
+.pipe-portlet .total-row td{font-weight:700;border-top:2px solid #2e4a63}
+/* ── Warn ── */
+.warn-box{background:#3d1a1a;border:1px solid #7f1d1d;border-radius:8px;
+          padding:12px 16px;margin-bottom:18px;font-size:12px;color:#fca5a5}
+.warn-box ul{margin-top:5px;padding-left:16px}
+.warn-box li{margin-top:3px}
+</style>
+</head>
+<body>
+<!-- ═══ HEADER ════════════════════════════════════════════════════════════ -->
+<header>
+  <div>
+    <h1>ALPHA DATA &mdash; Executive Dashboard 2026</h1>
+    <div class="hdr-meta" id="lastUpdated">Loading&hellip;</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn-refresh" onclick="refreshData()">&#8635; Refresh</button>
+    <a href="/logout" class="btn-logout">Sign out ({{ user }})</a>
+  </div>
+</header>
+
+<!-- ═══ BODY LAYOUT ═══════════════════════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- ── LEFT SIDEBAR ─────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sbar-title">Account Manager</div>
+      <div id="amFilter"></div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sbar-title">Upload Trackers</div>
+
+      <div class="upload-zone" id="dropZone"
+           ondragover="dzDrag(event,true)" ondragleave="dzDrag(event,false)" ondrop="dzDrop(event)">
+        <input type="file" id="fileInput" multiple accept=".xlsx"
+               onchange="dzChange(this)">
+        <div class="uz-icon">&#128196;</div>
+        <div class="uz-text">Drop <strong>.xlsx</strong> files here<br>or <span class="uz-link">browse</span></div>
+      </div>
+
+      <div class="file-chips" id="fileChips"></div>
+      <button class="btn-upload" id="btnUpload" onclick="doUpload()">&#8679; Upload &amp; Refresh</button>
+      <div class="upload-status" id="uploadStatus"></div>
+
+      <div class="expected-list">
+        <div class="sbar-title" style="margin-top:12px;margin-bottom:6px">Expected filenames</div>
+        <div id="expectedList"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ──────────────────────────────────────────────────── -->
+  <main class="content">
+    <div id="warnBox"></div>
+
+    <!-- Summary cards -->
+    <div class="cards" id="summaryCards"></div>
+
+    <!-- AM Performance -->
+    <div class="sec-title">Account Manager Performance</div>
+    <div class="am-table" id="amTableWrap"></div>
+    <div class="portlet" id="portlet"></div>
+
+    <!-- Billing Details -->
+    <div class="sec-title" style="margin-top:4px">Billing Details 2026</div>
+    <div id="billingSection"></div>
+
+    <!-- Opportunity Pipeline -->
+    <div class="sec-title">Opportunity Pipeline</div>
+    <div class="pipeline" id="pipeline"></div>
+    <div class="pipe-portlet" id="pipePortlet"></div>
+  </main>
+</div>
+
+<!-- ═══ SCRIPT ════════════════════════════════════════════════════════════ -->
+<script>
+var D = {{ data | safe }};
+var selAM   = "Overall";
+var selRow  = null;
+var selPipe = null;
+
+// ── Formatting helpers ────────────────────────────────────────────────────
+function fmt(n){
+  if(n==null||n===undefined||n===0) return '<span style="color:#2e4a63">AED 0</span>';
+  return "AED "+Number(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function fmtPlain(n){
+  if(!n) return "AED 0";
+  return "AED "+Number(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+// ── Rolling YTD target ────────────────────────────────────────────────────
+var NOW_MONTH = new Date().getMonth() + 1;   // 1–12
+var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function ytdTarget(annual){ return annual / 12 * NOW_MONTH; }
+
+// AM dot colours
+var AM_COLORS = ["#f59e0b","#3b82f6","#10b981","#a78bfa","#f87171","#34d399"];
+
+// ── Render everything ─────────────────────────────────────────────────────
+function renderAll(){
+  renderCards();
+  renderAMFilter();
+  renderTable();
+  renderBilling();
+  renderPipeline();
+  renderWarnings();
+  renderExpectedFiles();
+  document.getElementById("lastUpdated").textContent = "Data as of: " + D.last_updated;
+}
+
+function renderWarnings(){
+  var wb = document.getElementById("warnBox");
+  if(!D.errors || D.errors.length === 0){ wb.innerHTML = ""; return; }
+  var li = D.errors.map(function(e){ return "<li>"+e+"</li>"; }).join("");
+  wb.innerHTML = '<div class="warn-box"><strong>&#9888; Some files could not be read:</strong><ul>'+li+'</ul></div>';
+}
+
+// ── Summary cards (5 cards) ───────────────────────────────────────────────
+function renderCards(){
+  var ams = selAM === "Overall" ? D.am_labels : [selAM];
+  var annualTgt  = ams.reduce(function(s,am){ return s + (D.targets[am]||0); }, 0);
+  var ytdTgt     = ytdTarget(annualTgt);
+  var orders     = ams.reduce(function(s,am){ return s + (D.actual_2026[am]||0); }, 0);
+  var billed     = ams.reduce(function(s,am){ return s + (D.total_billed_2026[am]||0); }, 0);
+  var ach        = ytdTgt ? orders / ytdTgt * 100 : 0;
+  var gap        = ytdTgt - orders;
+
+  document.getElementById("summaryCards").innerHTML =
+    card("Annual Target 2026",    fmtPlain(annualTgt),  "Full-year target", "") +
+    card("YTD Target (thru "+MONTH_NAMES[NOW_MONTH-1]+")", fmtPlain(ytdTgt), "Annual &divide; 12 &times; "+NOW_MONTH, "amber") +
+    card("Orders Booked 2026",    fmtPlain(orders),     "From booking tracker", "blue") +
+    card("Total Billed 2026",     fmtPlain(billed),     "Invoiced to clients",  "green") +
+    card("Achievement vs YTD",    ach.toFixed(1)+"%",   gap <= 0 ? "Target met &#10003;" : fmtPlain(gap)+" gap", ach>=100?"green":ach>=70?"blue":"red");
+}
+function card(lbl,val,sub,cls){
+  return '<div class="card '+cls+'"><div class="lbl">'+lbl+'</div><div class="val">'+val+'</div><div class="sub">'+sub+'</div></div>';
+}
+
+// ── Sidebar AM filter ─────────────────────────────────────────────────────
+function renderAMFilter(){
+  var ams  = ["Overall"].concat(D.am_labels);
+  var html = ams.map(function(am, i){
+    var dotColor = i === 0 ? "#7a9bb5" : AM_COLORS[(i-1) % AM_COLORS.length];
+    var active   = am === selAM ? "active" : "";
+    return '<button class="am-btn '+active+'" onclick="setAM(\''+escQ(am)+'\')">'+
+      '<span class="dot" style="background:'+dotColor+'"></span>'+am+'</button>';
+  }).join("");
+  document.getElementById("amFilter").innerHTML = html;
+}
+
+function setAM(am){
+  selAM = am; selRow = null; selPipe = null;
+  renderCards(); renderAMFilter(); renderTable(); closePortlet();
+  renderBilling(); renderPipeline(); closePipePortlet();
+}
+
+// ── AM performance table ──────────────────────────────────────────────────
+function renderTable(){
+  var ams  = selAM === "Overall" ? D.am_labels : [selAM];
+  var rows = ams.map(function(am){
+    var tgt  = D.targets[am]||0;
+    var act  = D.actual_2026[am]||0;
+    var ytd  = ytdTarget(tgt);
+    var a    = ytd ? act/ytd*100 : 0;
+    var gap  = ytd - act;
+    var bar  = Math.min(a, 100);
+    var col  = a>=100?"green":a>=70?"":"red";
+    return '<tr onclick="showPortlet(\''+escQ(am)+'\')">'+
+      '<td class="name-cell">'+am+'</td>'+
+      '<td>'+fmtPlain(tgt)+'</td>'+
+      '<td>'+fmtPlain(ytd)+'</td>'+
+      '<td>'+fmtPlain(act)+'</td>'+
+      '<td><span style="color:'+(a>=100?"#34d399":a>=70?"#60a5fa":"#f87171")+'">'+a.toFixed(1)+'%</span>'+
+        '<div class="pct-bar"><div class="pct-fill '+col+'" style="width:'+bar+'%"></div></div></td>'+
+      '<td style="color:'+(gap<=0?"#34d399":"#f87171")+'">'+fmtPlain(gap)+'</td>'+
+    '</tr>';
+  }).join("");
+  document.getElementById("amTableWrap").innerHTML =
+    '<table><thead><tr>'+
+    '<th>Account Manager</th><th>Annual Target</th><th>YTD Target (thru '+MONTH_NAMES[NOW_MONTH-1]+')</th>'+
+    '<th>Orders Booked</th><th>Achievement %</th><th>Gap to YTD</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function showPortlet(am){
+  if(selRow === am){ closePortlet(); return; }
+  selRow = am;
+  var accs = D.accounts_2026[am] || [];
+  var content;
+  if(accs.length === 0){
+    content = '<p style="color:#7a9bb5;font-size:12px">No 2026 bookings recorded.</p>';
+  } else {
+    var total = accs.reduce(function(s,r){ return s+r.amount; }, 0);
+    var rows  = accs.map(function(r){
+      return '<tr><td>'+r.customer+'</td><td style="text-align:right">'+fmtPlain(r.amount)+'</td></tr>';
+    }).join("");
+    content = '<table><thead><tr><th>Customer</th><th style="text-align:right">Amount Booked</th></tr></thead>'+
+      '<tbody>'+rows+'<tr class="total-row"><td>Total</td><td style="text-align:right">'+fmtPlain(total)+'</td></tr></tbody></table>';
+  }
+  var p = document.getElementById("portlet");
+  p.className = "portlet active";
+  p.innerHTML = '<h3>'+am+' &mdash; 2026 Account Bookings <span style="font-size:11px;color:#7a9bb5">(click row to close)</span></h3>'+content;
+}
+function closePortlet(){ selRow = null; var p = document.getElementById("portlet"); p.className = "portlet"; p.innerHTML = ""; }
+
+// ── Billing Details ───────────────────────────────────────────────────────
+function renderBilling(){
+  var ams    = selAM === "Overall" ? D.am_labels : [selAM];
+  var months = D.billing_months;
+
+  // Build table header
+  var thCols = months.map(function(m){ return '<th>'+m+'</th>'; }).join("");
+  var header = '<tr><th>Account Manager</th>'+thCols+'<th>Total Billed</th></tr>';
+
+  // Build rows
+  var rows = ams.map(function(am){
+    var bm = D.billing_monthly[am] || {};
+    var total = D.total_billed_2026[am] || 0;
+    var cells = months.map(function(m){
+      var v = bm[m] || 0;
+      if(!v) return '<td class="zero">-</td>';
+      return '<td>'+fmtPlain(v)+'</td>';
+    }).join("");
+    return '<tr><td>'+am+'</td>'+cells+'<td><strong>'+fmtPlain(total)+'</strong></td></tr>';
+  }).join("");
+
+  // Total row (Overall)
+  var totalCells = months.map(function(m){
+    var t = ams.reduce(function(s,am){ return s + ((D.billing_monthly[am]||{})[m]||0); }, 0);
+    if(!t) return '<td class="zero">-</td>';
+    return '<td>'+fmtPlain(t)+'</td>';
+  }).join("");
+  var grandTotal = ams.reduce(function(s,am){ return s + (D.total_billed_2026[am]||0); }, 0);
+  var totalRow = selAM === "Overall"
+    ? '<tr class="total-row"><td>Total</td>'+totalCells+'<td>'+fmtPlain(grandTotal)+'</td></tr>'
+    : '';
+
+  document.getElementById("billingSection").innerHTML =
+    '<div class="billing-wrap" style="overflow-x:auto">'+
+    '<table><thead>'+header+'</thead>'+
+    '<tbody>'+rows+totalRow+'</tbody></table></div>';
+}
+
+// ── Opportunity Pipeline ──────────────────────────────────────────────────
+function renderPipeline(){
+  var ams    = selAM === "Overall" ? D.am_labels : [selAM];
+  var colCls = ams.length === 1 ? "cols-1" : "cols-5";
+  var html   = ams.map(function(am){
+    var p   = D.pipeline[am] || {};
+    var v40 = p["40%"]||0, v50 = p["50%"]||0, v80 = p["80%"]||0;
+    var maxV = Math.max(v40, v50, v80, 1);
+    return '<div class="pipe-card">'+
+      '<div class="am-name">'+am+'</div>'+
+      pipeRow(am,"40%",v40,maxV)+pipeRow(am,"50%",v50,maxV)+pipeRow(am,"80%",v80,maxV)+
+    '</div>';
+  }).join("");
+  var el = document.getElementById("pipeline");
+  el.className = "pipeline "+colCls;
+  el.innerHTML = html;
+}
+
+function pipeRow(am, sc, val, maxV){
+  var clsMap = {"40%":"p40","50%":"p50","80%":"p80"};
+  var w = maxV ? Math.round(val/maxV*100) : 0;
+  var isActive = selPipe && selPipe.am===am && selPipe.pct===sc ? "active-lbl" : "";
+  return '<div class="pipe-row">'+
+    '<div class="pipe-lbl '+isActive+'" onclick="showPipeDetail(\''+escQ(am)+'\',\''+sc+'\')">'+
+      '<span>'+sc+' Win</span><span>'+fmtPlain(val)+'</span>'+
+    '</div>'+
+    '<div class="pipe-bar"><div class="pipe-fill '+clsMap[sc]+'" style="width:'+w+'%"></div></div>'+
+  '</div>';
+}
+
+function showPipeDetail(am, sc){
+  if(selPipe && selPipe.am===am && selPipe.pct===sc){ closePipePortlet(); return; }
+  selPipe = {am:am, pct:sc};
+  renderPipeline();
+  var detail   = (D.pipeline_detail[am]||{})[sc] || [];
+  var badgeCls = {"40%":"badge-40","50%":"badge-50","80%":"badge-80"};
+  var pp = document.getElementById("pipePortlet");
+  pp.className = "pipe-portlet active";
+  if(detail.length === 0){
+    pp.innerHTML = '<h3>'+am+' <span class="badge '+badgeCls[sc]+'">'+sc+'</span></h3>'+
+      '<p style="color:#7a9bb5;font-size:12px">No opportunities at this stage.</p>';
+    return;
+  }
+  var total = detail.reduce(function(s,r){ return s+r.amount; }, 0);
+  var rows  = detail.map(function(r){
+    return '<tr><td>'+r.customer+'</td><td style="text-align:right">'+fmtPlain(r.amount)+'</td></tr>';
+  }).join("");
+  pp.innerHTML = '<h3>'+am+' <span class="badge '+badgeCls[sc]+'">'+sc+' Win Opportunities</span></h3>'+
+    '<table><thead><tr><th>Customer</th><th style="text-align:right">Proposal Value</th></tr></thead>'+
+    '<tbody>'+rows+
+    '<tr class="total-row"><td>Total Pipeline</td><td style="text-align:right">'+fmtPlain(total)+'</td></tr>'+
+    '</tbody></table>';
+}
+function closePipePortlet(){
+  selPipe = null; renderPipeline();
+  var pp = document.getElementById("pipePortlet");
+  pp.className = "pipe-portlet"; pp.innerHTML = "";
+}
+
+// ── Refresh ───────────────────────────────────────────────────────────────
+function refreshData(){
+  var btn = document.querySelector(".btn-refresh");
+  btn.textContent = "Refreshing…"; btn.disabled = true;
+  fetch("/api/refresh", {method:"POST"})
+    .then(function(r){ return r.json(); })
+    .then(function(){ return fetch("/api/data").then(function(r){ return r.json(); }); })
+    .then(function(nd){ D = nd; renderAll(); btn.textContent = "↻ Refresh"; btn.disabled = false; })
+    .catch(function(){ btn.textContent = "↻ Refresh"; btn.disabled = false; });
+}
+
+// ── Upload logic ──────────────────────────────────────────────────────────
+var pendingFiles = [];   // File objects selected by user
+
+function renderExpectedFiles(){
+  var html = D.am_labels.map(function(am,i){
+    // Reconstruct expected filename from config: we get it from the portlet
+    return '<div class="exp-item" title="'+am+'">'+am+'</div>';
+  }).join("");
+  document.getElementById("expectedList").innerHTML = html;
+}
+
+function dzDrag(e, over){ e.preventDefault(); document.getElementById("dropZone").classList.toggle("drag-over", over); }
+function dzDrop(e){
+  e.preventDefault();
+  dzDrag(e, false);
+  addFiles(Array.from(e.dataTransfer.files).filter(function(f){ return f.name.endsWith(".xlsx"); }));
+}
+function dzChange(inp){
+  addFiles(Array.from(inp.files));
+  inp.value = "";
+}
+
+function addFiles(newFiles){
+  newFiles.forEach(function(f){
+    if(!pendingFiles.find(function(x){ return x.name === f.name; }))
+      pendingFiles.push(f);
+  });
+  renderChips();
+}
+
+function removeFile(name){
+  pendingFiles = pendingFiles.filter(function(f){ return f.name !== name; });
+  renderChips();
+}
+
+function renderChips(){
+  var html = pendingFiles.map(function(f){
+    return '<div class="file-chip">'+
+      '<span class="chip-name" title="'+f.name+'">'+f.name+'</span>'+
+      '<button class="chip-rm" onclick="removeFile(\''+escQ(f.name)+'\')">&#215;</button>'+
+    '</div>';
+  }).join("");
+  document.getElementById("fileChips").innerHTML = html;
+  document.getElementById("btnUpload").style.display = pendingFiles.length ? "block" : "none";
+  document.getElementById("uploadStatus").innerHTML = "";
+}
+
+function doUpload(){
+  if(!pendingFiles.length) return;
+  var btn = document.getElementById("btnUpload");
+  btn.disabled = true; btn.textContent = "Uploading…";
+  document.getElementById("uploadStatus").innerHTML = '<span class="us-info">Uploading and refreshing data…</span>';
+
+  var fd = new FormData();
+  pendingFiles.forEach(function(f){ fd.append("files", f); });
+
+  fetch("/api/upload", {method:"POST", body:fd})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var lines = [];
+      if(res.error){ lines.push('<span class="us-warn">&#10007; '+res.error+'</span>'); }
+      (res.uploaded||[]).forEach(function(u){
+        lines.push('<span class="us-ok">&#10003; '+u.am+' updated</span>');
+      });
+      (res.skipped||[]).forEach(function(s){
+        lines.push('<span class="us-warn">&#63; Skipped (name not recognised): '+s+'</span>');
+      });
+      (res.errors||[]).forEach(function(e){
+        lines.push('<span class="us-warn">&#10007; '+e+'</span>');
+      });
+      document.getElementById("uploadStatus").innerHTML = lines.join("<br>");
+      if(res.uploaded && res.uploaded.length > 0){
+        pendingFiles = [];
+        renderChips();
+        // Reload fresh data
+        fetch("/api/data").then(function(r){ return r.json(); }).then(function(nd){
+          D = nd; renderAll();
+        });
+      }
+      btn.disabled = false; btn.textContent = "&#8679; Upload & Refresh";
+    })
+    .catch(function(err){
+      document.getElementById("uploadStatus").innerHTML = '<span class="us-warn">&#10007; Upload failed: '+err+'</span>';
+      btn.disabled = false; btn.textContent = "&#8679; Upload & Refresh";
+    });
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────
+function escQ(s){ return s.replace(/'/g, "\\'"); }
+
+// ── Init ──────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
